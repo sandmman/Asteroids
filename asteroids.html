@@ -2,28 +2,28 @@
 <!--Purpose: Front end point chooser / debugger for line segment intersection function!-->
 <html>
 <head>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
 <!-- This is how you include external scripts in Javascript !-->
 <body>
-<h2><a name = "asteroids"> asteroids</a></h2>
+<h name = "Asteroids"> Asteroids</h>
 <table>
-<tr>
-<td width = "200">
-<button type = "button" onclick = "update()">Start</button><BR><BR>
+  <tr>
+    <td width = "100">
+      <button type = "button" onclick = "restart()">Restart</button>
+    </td>
+  </tr>
+  <tr>
+    <td> Score: <a id="Score"></a></td>
+  </tr>
 </table>
-</td>
-<td>
-<canvas id = "segcanvas" width = "500" height = "500" style="border:1px solid #000000;">
-</canvas>
-</td>
-</tr>
-</table>
+
+<canvas id = "segcanvas" width = "700" height = "500" style="background: url('./images/space2.jpg')"></canvas>
 
 <script>
 
 var canvas = document.getElementById("segcanvas"),
 ctx = canvas.getContext("2d");
-
-canvas.width = canvas.height = 500;
 
 var x = 250,  //initial x
     y = 250,  // initial y
@@ -31,19 +31,18 @@ var x = 250,  //initial x
     velX = 0,
     speed = 1, // max speed
     friction = 0.98, // friction
+    score = 0;
     keys = [],
     shots = [],
     asteroids = [];
 
 function update() {
-
     // check the keys and do the movement.
     if (keys[38]) {
         if (velY > -speed) {
             velY--;
         }
     }
-
     if (keys[40]) {
         if (velY < speed) {
             velY++;
@@ -60,7 +59,6 @@ function update() {
         }
     }
     if (keys[88]) { // gun shot
-      console.log(shots);
       keys[88] = false;
     }
 
@@ -73,14 +71,14 @@ function update() {
     x += velX;
 
     // bounds checking
-    if (x >= 495) {
-        x = 495;
+    if (x >= canvas.width - 5) {
+        x = canvas.width - 5;
     } else if (x <= 5) {
         x = 5;
     }
 
-    if (y > 495) {
-        y = 495;
+    if (y > canvas.height) {
+        y = canvas.height;
     } else if (y <= 5) {
         y = 5;
     }
@@ -97,14 +95,17 @@ function asteroid() {
   asteroids.push(coordinates.concat(velocity));
 }
 function repaint() {
-  ctx.clearRect(0, 0, 500, 500);
+  repaintShip();
+  repaintShots();
+  repaintAsteroids();
+}
+function repaintShip(){
+  checkShipCollision();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.beginPath();
   ctx.arc(x, y, 5, 0, Math.PI * 2);
-  ctx.fillStyle = "#000000";
+  ctx.fillStyle = "#ffffff";
   ctx.fill();
-
-  repaintShots();
-  repaintasteroids();
 }
 function repaintShots(){
   for (i=0;i<shots.length;i++){
@@ -122,19 +123,11 @@ function repaintShots(){
       ctx.arc(shots[i][0],shots[i][1], 5, 0, Math.PI * 2);
       ctx.fillStyle = "#00A308";
       ctx.fill();
-      for (j=0; j < asteroids.length; j++){
-        //check if distance from circle center to point in  is < radius
-        if ( Math.sqrt( Math.pow(asteroids[j][0] - shots[i][0],2) + Math.pow(asteroids[j][1] - shots[i][1],2)) < 20 ) { // Impact
-            shots.splice(i,1);
-            asteroids.splice(i,1);
-        }
-      }
+      checkAstroidCollision(shots[i],i);
     }
-
   }
 }
-
-function repaintasteroids(){
+function repaintAsteroids(){
   for (i=0;i<asteroids.length;i++){
     // adjust coordinates
     asteroids[i][1] += asteroids[i][3];
@@ -153,22 +146,63 @@ function repaintasteroids(){
     }
   }
 }
-function checkImpact(shot) {
-
+function checkAstroidCollision(shot,index){
+  for (j=0; j < asteroids.length; j++){
+    //check if distance from circle center to point in  is < radius
+    if ( Math.sqrt( Math.pow(asteroids[j][0] - shot[0],2) + Math.pow(asteroids[j][1] - shot[1],2)) < 15 ) { // Impact
+        shots.splice(index,1);
+        asteroids.splice(j,1);
+        score++;
+        document.getElementById('Score').innerHTML = "" + score;
+    }
+  }
 }
-
+function checkShipCollision(){
+  for (k=0; k < asteroids.length; k++){
+    //check if distance from circle center to point in  is < radius
+    if ( Math.sqrt( Math.pow(asteroids[k][0] - x,2) + Math.pow(asteroids[k][1] - y,2)) < 15 ) { // Impact
+      if (confirm('You Lost :( !! Wanna play Again?')) {
+        return;
+      }
+      else {}
+    }
+  }
+}
 function getRandomCoordinates() {
   return [Math.floor(Math.random() * (canvas.height - 1)),Math.floor(Math.random() * (canvas.height - 1))];
 }
 function getRandomVelocity() {
   return [Math.random(),Math.random()];
 }
+function restart() {
+  var x = 250,  //initial x
+      y = 250,  // initial y
+      velY = 0,
+      velX = 0,
+      speed = 1, // max speed
+      friction = 0.98, // friction
+      score = 0;
+      keys = [],
+      shots = [],
+      asteroids = [];
+      update();
+}
 update();
 
+//Astroid creator
 setInterval(function(){
     asteroid();
 }, 2000);
-// key events
+
+// Disable page scrolling
+window.addEventListener("keydown", function(e) {
+    // space and arrow keys
+    if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+        e.preventDefault();
+    }
+}, false);
+
+//Shooting and Movement events
 document.body.addEventListener("keydown", function (e) {
     keys[e.keyCode] = true;
 
@@ -180,9 +214,9 @@ document.body.addEventListener("keydown", function (e) {
 document.body.addEventListener("keyup", function (e) {
     keys[e.keyCode] = false;
   });
-  document.body.addEventListener("shot", function (e) {
-      keys[e.keyCode] = false;
-    });
+document.body.addEventListener("shot", function (e) {
+    keys[e.keyCode] = false;
+  });
 </script>
 
 

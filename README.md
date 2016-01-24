@@ -1,4 +1,4 @@
-# asteroids #
+# Asteroids #
 
 Basic implementation of asteroids in HTML5 and Javascript
 
