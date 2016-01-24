@@ -7,10 +7,11 @@ canvas {
     width: 800px;
 }
 body {
-    background-color: lightblue;
+    background-color: black;
 }
 h {
   font-family: Arial;
+  color: White;
   font-size: 40px;
   text-align: center;
 }
@@ -22,4 +23,5 @@ table, th, td {
     font-family: Arial;
     font-size: 20px;
     align: left;
+    color: White;
 }
