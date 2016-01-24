@@ -4,7 +4,7 @@
 <head>
 <!-- This is how you include external scripts in Javascript !-->
 <body>
-<h2><a name = "Astroids"> Astroids</a></h2>
+<h2><a name = "asteroids"> asteroids</a></h2>
 <table>
 <tr>
 <td width = "200">
@@ -29,11 +29,11 @@ var x = 250,  //initial x
     y = 250,  // initial y
     velY = 0,
     velX = 0,
-    speed = 1.5, // max speed
+    speed = 1, // max speed
     friction = 0.98, // friction
     keys = [],
     shots = [],
-    astroids = [];
+    asteroids = [];
 
 function update() {
 
@@ -91,11 +91,10 @@ function update() {
     setTimeout(update, 10);
 
 }
-function astroid() {
+function asteroid() {
   var coordinates = getRandomCoordinates();
   var velocity = getRandomVelocity();
-  astroids.push(coordinates.concat(velocity));
-  console.log(astroids[0],astroids[1],astroids[2],astroids[3]);
+  asteroids.push(coordinates.concat(velocity));
 }
 function repaint() {
   ctx.clearRect(0, 0, 500, 500);
@@ -105,7 +104,7 @@ function repaint() {
   ctx.fill();
 
   repaintShots();
-  repaintAstroids();
+  repaintasteroids();
 }
 function repaintShots(){
   for (i=0;i<shots.length;i++){
@@ -114,38 +113,50 @@ function repaintShots(){
     shots[i][0] += shots[i][2];
     //delete it if its out of the page
     var Cx = shots[i][0];
-    var Cy = shots[i][0];
+    var Cy = shots[i][1];
     if(Cx > canvas.width || Cx < 0 || Cy > canvas.height || Cy < 0){
-      //shots.splice(i,1);
+      shots.splice(i,1);
     }
     else {
       ctx.beginPath();
       ctx.arc(shots[i][0],shots[i][1], 5, 0, Math.PI * 2);
       ctx.fillStyle = "#00A308";
       ctx.fill();
+      for (j=0; j < asteroids.length; j++){
+        //check if distance from circle center to point in  is < radius
+        if ( Math.sqrt( Math.pow(asteroids[j][0] - shots[i][0],2) + Math.pow(asteroids[j][1] - shots[i][1],2)) < 20 ) { // Impact
+            shots.splice(i,1);
+            asteroids.splice(i,1);
+        }
+      }
     }
 
   }
 }
-function repaintAstroids(){
-  for (i=0;i<astroids.length;i++){
+
+function repaintasteroids(){
+  for (i=0;i<asteroids.length;i++){
     // adjust coordinates
-    astroids[i][1] += astroids[i][3];
-    astroids[i][0] += astroids[i][2];
+    asteroids[i][1] += asteroids[i][3];
+    asteroids[i][0] += asteroids[i][2];
     //delete it if its out of the page
-    var Cx = astroids[i][0];
-    var Cy = astroids[i][0];
+    var Cx = asteroids[i][0];
+    var Cy = asteroids[i][1];
     if(Cx > canvas.width || Cx < 0 || Cy > canvas.height || Cy < 0){
-      //shots.splice(i,1);
+      asteroids.splice(i,1);
     }
     else{
       ctx.beginPath();
-      ctx.arc(astroids[i][0],astroids[i][1], 5, 0, Math.PI * 2);
+      ctx.arc(asteroids[i][0],asteroids[i][1], 10, 0, Math.PI * 2);
       ctx.fillStyle = "#0800B8";
       ctx.fill();
     }
   }
 }
+function checkImpact(shot) {
+
+}
+
 function getRandomCoordinates() {
   return [Math.floor(Math.random() * (canvas.height - 1)),Math.floor(Math.random() * (canvas.height - 1))];
 }
@@ -155,8 +166,8 @@ function getRandomVelocity() {
 update();
 
 setInterval(function(){
-    astroid();
-}, 5000);
+    asteroid();
+}, 2000);
 // key events
 document.body.addEventListener("keydown", function (e) {
     keys[e.keyCode] = true;
