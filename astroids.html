@@ -1,0 +1,141 @@
+<!--Programmer: Chris Tralie!-->
+<!--Purpose: Front end point chooser / debugger for line segment intersection function!-->
+<html>
+<head>
+<!-- This is how you include external scripts in Javascript !-->
+<script src = "astroids.js"></script>
+<body>
+
+<h2><a name = "Astroids"> Astroids</a></h2>
+
+<table>
+<tr>
+<td width = "200">
+<button type = "button" onclick = "update()">Start</button><BR><BR>
+</table>
+</td>
+<td>
+<canvas id = "segcanvas" width = "500" height = "500" style="border:1px solid #000000;">
+</canvas>
+</td>
+</tr>
+</table>
+
+<script>
+
+var canvas = document.getElementById("segcanvas"),
+ctx = canvas.getContext("2d");
+
+canvas.width = canvas.height = 500;
+
+var x = 250,  //initial x
+    y = 250,  // initial y
+    velY = 0,
+    velX = 0,
+    speed = 1.5, // max speed
+    friction = 0.98, // friction
+    keys = [];
+    shots = []
+
+function update() {
+
+    // check the keys and do the movement.
+    if (keys[38]) {
+        if (velY > -speed) {
+            velY--;
+        }
+    }
+
+    if (keys[40]) {
+        if (velY < speed) {
+            velY++;
+        }
+    }
+    if (keys[39]) {
+        if (velX < speed) {
+            velX++;
+        }
+    }
+    if (keys[37]) {
+        if (velX > -speed) {
+            velX--;
+        }
+    }
+    if (keys[88]) { // gun shot
+      console.log(shots);
+      keys[88] = false;
+    }
+
+    // apply some friction to y velocity.
+    velY *= friction;
+    y += velY;
+
+    // apply some friction to x velocity.
+    velX *= friction;
+    x += velX;
+
+    // bounds checking
+    if (x >= 495) {
+        x = 495;
+    } else if (x <= 5) {
+        x = 5;
+    }
+
+    if (y > 495) {
+        y = 495;
+    } else if (y <= 5) {
+        y = 5;
+    }
+
+    // do the drawing
+    repaint();
+
+    setTimeout(update, 10);
+}
+function repaint() {
+  ctx.clearRect(0, 0, 500, 500);
+  ctx.beginPath();
+  ctx.arc(x, y, 5, 0, Math.PI * 2);
+  ctx.fillStyle = "#000000";
+  ctx.fill();
+
+  for (i=0;i<shots.length;i++){
+    // adjust coordinates
+    shots[i][1] += shots[i][3];
+    shots[i][0] += shots[i][2];
+
+    ctx.beginPath();
+    ctx.arc(shots[i][0],shots[i][1], 5, 0, Math.PI * 2);
+    ctx.fillStyle = "#00A308";
+    ctx.fill();
+
+  }
+}
+function repaintShots(){
+
+}
+function repaintAstroids(){
+
+}
+update();
+
+// key events
+document.body.addEventListener("keydown", function (e) {
+    keys[e.keyCode] = true;
+
+    //shots
+    if (e.keyCode == 88){
+      shots.push([x,y,velX,velY]);
+    }
+});
+document.body.addEventListener("keyup", function (e) {
+    keys[e.keyCode] = false;
+  });
+  document.body.addEventListener("shot", function (e) {
+      keys[e.keyCode] = false;
+    });
+</script>
+
+
+</body>
+</html>
