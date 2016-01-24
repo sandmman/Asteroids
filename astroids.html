@@ -3,11 +3,8 @@
 <html>
 <head>
 <!-- This is how you include external scripts in Javascript !-->
-<script src = "astroids.js"></script>
 <body>
-
 <h2><a name = "Astroids"> Astroids</a></h2>
-
 <table>
 <tr>
 <td width = "200">
@@ -34,8 +31,9 @@ var x = 250,  //initial x
     velX = 0,
     speed = 1.5, // max speed
     friction = 0.98, // friction
-    keys = [];
-    shots = []
+    keys = [],
+    shots = [],
+    astroids = [];
 
 function update() {
 
@@ -91,6 +89,13 @@ function update() {
     repaint();
 
     setTimeout(update, 10);
+
+}
+function astroid() {
+  var coordinates = getRandomCoordinates();
+  var velocity = getRandomVelocity();
+  astroids.push(coordinates.concat(velocity));
+  console.log(astroids[0],astroids[1],astroids[2],astroids[3]);
 }
 function repaint() {
   ctx.clearRect(0, 0, 500, 500);
@@ -99,26 +104,59 @@ function repaint() {
   ctx.fillStyle = "#000000";
   ctx.fill();
 
+  repaintShots();
+  repaintAstroids();
+}
+function repaintShots(){
   for (i=0;i<shots.length;i++){
     // adjust coordinates
     shots[i][1] += shots[i][3];
     shots[i][0] += shots[i][2];
-
-    ctx.beginPath();
-    ctx.arc(shots[i][0],shots[i][1], 5, 0, Math.PI * 2);
-    ctx.fillStyle = "#00A308";
-    ctx.fill();
+    //delete it if its out of the page
+    var Cx = shots[i][0];
+    var Cy = shots[i][0];
+    if(Cx > canvas.width || Cx < 0 || Cy > canvas.height || Cy < 0){
+      //shots.splice(i,1);
+    }
+    else {
+      ctx.beginPath();
+      ctx.arc(shots[i][0],shots[i][1], 5, 0, Math.PI * 2);
+      ctx.fillStyle = "#00A308";
+      ctx.fill();
+    }
 
   }
 }
-function repaintShots(){
-
-}
 function repaintAstroids(){
-
+  for (i=0;i<astroids.length;i++){
+    // adjust coordinates
+    astroids[i][1] += astroids[i][3];
+    astroids[i][0] += astroids[i][2];
+    //delete it if its out of the page
+    var Cx = astroids[i][0];
+    var Cy = astroids[i][0];
+    if(Cx > canvas.width || Cx < 0 || Cy > canvas.height || Cy < 0){
+      //shots.splice(i,1);
+    }
+    else{
+      ctx.beginPath();
+      ctx.arc(astroids[i][0],astroids[i][1], 5, 0, Math.PI * 2);
+      ctx.fillStyle = "#0800B8";
+      ctx.fill();
+    }
+  }
+}
+function getRandomCoordinates() {
+  return [Math.floor(Math.random() * (canvas.height - 1)),Math.floor(Math.random() * (canvas.height - 1))];
+}
+function getRandomVelocity() {
+  return [Math.random(),Math.random()];
 }
 update();
 
+setInterval(function(){
+    astroid();
+}, 5000);
 // key events
 document.body.addEventListener("keydown", function (e) {
     keys[e.keyCode] = true;
