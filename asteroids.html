@@ -3,6 +3,7 @@
 <html>
 <head>
   <link rel="stylesheet" type="text/css" href="style.css">
+  <script src = "GeomPrimitives copy.js"></script>
 </head>
 <!-- This is how you include external scripts in Javascript !-->
 <body>
@@ -92,6 +93,8 @@ function update() {
 function asteroid() {
   var coordinates = getRandomCoordinates();
   var velocity = getRandomVelocity();
+  var size = Math.ceil(Math.random() * (3));
+  velocity.push(size);
   asteroids.push(coordinates.concat(velocity));
 }
 function repaint() {
@@ -108,22 +111,22 @@ function repaintShip(){
   ctx.fill();
 }
 function repaintShots(){
-  for (i=0;i<shots.length;i++){
+  for (l=0;l<shots.length;l++){
     // adjust coordinates
-    shots[i][1] += shots[i][3];
-    shots[i][0] += shots[i][2];
+    shots[l][1] += shots[l][3];
+    shots[l][0] += shots[l][2];
     //delete it if its out of the page
-    var Cx = shots[i][0];
-    var Cy = shots[i][1];
+    var Cx = shots[l][0];
+    var Cy = shots[l][1];
     if(Cx > canvas.width || Cx < 0 || Cy > canvas.height || Cy < 0){
-      shots.splice(i,1);
+      shots.splice(l,1);
     }
     else {
       ctx.beginPath();
-      ctx.arc(shots[i][0],shots[i][1], 2, 0, Math.PI * 2);
+      ctx.arc(shots[l][0],shots[l][1], 2, 0, Math.PI * 2);
       ctx.fillStyle = "#ffffff";
       ctx.fill();
-      checkAstroidCollision(shots[i],i);
+      checkAstroidCollision(shots[l],l);
     }
   }
 }
@@ -139,20 +142,19 @@ function repaintAsteroids(){
       asteroids.splice(i,1);
     }
     else{
+      var scale = asteroids[i][4];
       ctx.beginPath();
-      ctx.moveTo(asteroids[i][0]+10, asteroids[i][1]+10);
-      ctx.lineTo(asteroids[i][0]+8, asteroids[i][1]+5);
-      ctx.lineTo(asteroids[i][0]+10, asteroids[i][1]-10);
-      ctx.lineTo(asteroids[i][0], asteroids[i][1]-5);
-      ctx.lineTo(asteroids[i][0]-10, asteroids[i][1]-10);
-      ctx.lineTo(asteroids[i][0]-3, asteroids[i][1]+2);
-      ctx.lineTo(asteroids[i][0]-10, asteroids[i][1]+10);
+      ctx.moveTo(asteroids[i][0]+10*scale, asteroids[i][1]+10*scale);
+      ctx.lineTo(asteroids[i][0]+8*scale, asteroids[i][1]+5*scale);
+      ctx.lineTo(asteroids[i][0]+10*scale, asteroids[i][1]-10*scale);
+      ctx.lineTo(asteroids[i][0], asteroids[i][1]-5*scale);
+      ctx.lineTo(asteroids[i][0]-10*scale, asteroids[i][1]-10*scale);
+      ctx.lineTo(asteroids[i][0]-3*scale, asteroids[i][1]+2*scale);
+      ctx.lineTo(asteroids[i][0]-10*scale, asteroids[i][1]+10*scale);
       ctx.closePath();
       ctx.lineWidth = 2;
       ctx.strokeStyle = 'White';
       ctx.stroke();
-      //ctx.fill();
-      //ctx.arc(asteroids[i][0],asteroids[i][1], 10, 0, Math.PI * 2);
 
     }
   }
@@ -160,7 +162,7 @@ function repaintAsteroids(){
 function checkAstroidCollision(shot,index){
   for (j=0; j < asteroids.length; j++){
     //check if distance from circle center to point in  is < radius
-    if ( Math.sqrt( Math.pow(asteroids[j][0] - shot[0],2) + Math.pow(asteroids[j][1] - shot[1],2)) < 12 ) { // Impact
+    if ( Math.sqrt( Math.pow(asteroids[j][0] - shot[0],2) + Math.pow(asteroids[j][1] - shot[1],2)) < asteroids[j][4]*10+2 ) { // Impact
         shots.splice(index,1);
         asteroids.splice(j,1);
         score++;
@@ -173,7 +175,7 @@ function checkShipCollision(){
     //check if distance from circle center to point in  is < radius
     if ( Math.sqrt( Math.pow(asteroids[k][0] - x,2) + Math.pow(asteroids[k][1] - y,2)) < 15 ) { // Impact
       if (confirm('You Lost :( !! Wanna play Again?')) {
-        return;
+        location.reload();
       }
       else {}
     }
@@ -186,17 +188,7 @@ function getRandomVelocity() {
   return [Math.random(),Math.random()];
 }
 function restart() {
-  var x = 250,  //initial x
-      y = 250,  // initial y
-      velY = 0,
-      velX = 0,
-      speed = 1, // max speed
-      friction = 0.98, // friction
-      score = 0;
-      keys = [],
-      shots = [],
-      asteroids = [];
-      update();
+  location.reload();
 }
 update();
 
@@ -219,7 +211,22 @@ document.body.addEventListener("keydown", function (e) {
 
     //shots
     if (e.keyCode == 88){
-      shots.push([x,y,velX,velY]);
+      if(Math.abs(velX) > Math.abs(velY)){
+        var vX = 2;
+        var vY = Math.abs(velY/velX) * 2;
+      } else {
+        var vY = 2;
+        var vX = Math.abs(velX/velY) * 2;
+      }
+      var multX = 1;
+      var multY = 1;
+      if (velX < 0){
+        multX = -1;
+      }
+      if (velY < 0){
+        multY = -1;
+      }
+      shots.push([x,y,vX*multX,vY*multY]);
     }
 });
 document.body.addEventListener("keyup", function (e) {
