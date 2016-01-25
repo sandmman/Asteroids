@@ -35,7 +35,9 @@ var x = 250,  //initial x
     score = 0;
     keys = [],
     shots = [],
-    asteroids = [];
+    asteroids = [],
+    interval = 2000;
+
 
 function update() {
     // check the keys and do the movement.
@@ -126,7 +128,7 @@ function repaintShots(){
       ctx.arc(shots[l][0],shots[l][1], 2, 0, Math.PI * 2);
       ctx.fillStyle = "#ffffff";
       ctx.fill();
-      checkAstroidCollision(shots[l],l);
+      checkAsteroidCollision(shots[l],l);
     }
   }
 }
@@ -159,21 +161,31 @@ function repaintAsteroids(){
     }
   }
 }
-function checkAstroidCollision(shot,index){
+
+function checkAsteroidCollision(shot,index){
   for (j=0; j < asteroids.length; j++){
-    //check if distance from circle center to point in  is < radius
-    if ( Math.sqrt( Math.pow(asteroids[j][0] - shot[0],2) + Math.pow(asteroids[j][1] - shot[1],2)) < asteroids[j][4]*10+2 ) { // Impact
+    var scale = asteroids[j][4];
+    var sht = [shot[0],shot[1]];
+    var pts = [[asteroids[j][0]+10*scale, asteroids[j][1]+10*scale],[asteroids[j][0]+8*scale, asteroids[j][1]+5*scale],[asteroids[j][0]+10*scale, asteroids[j][1]-10*scale],[asteroids[j][0], asteroids[j][1]-5*scale],[asteroids[j][0]-10*scale, asteroids[j][1]-10*scale],[asteroids[j][0]-3*scale, asteroids[j][1]+2*scale],[asteroids[j][0]-10*scale, asteroids[j][1]+10*scale]];
+    // Tests if point is within the astroid polygon
+    if (point_in_polygon(pts, sht)) { // Impact
         shots.splice(index,1);
-        asteroids.splice(j,1);
+        console.log(asteroids.length);
+        console.log(asteroids.splice(j,1));
+        console.log(asteroids.length);
         score++;
         document.getElementById('Score').innerHTML = "" + score;
     }
   }
 }
+
 function checkShipCollision(){
   for (k=0; k < asteroids.length; k++){
     //check if distance from circle center to point in  is < radius
-    if ( Math.sqrt( Math.pow(asteroids[k][0] - x,2) + Math.pow(asteroids[k][1] - y,2)) < 15 ) { // Impact
+    var scale = asteroids[k][4];
+    var pt = [x,y]
+    var points = [[asteroids[k][0]+10*scale, asteroids[k][1]+10*scale],[asteroids[k][0]+8*scale, asteroids[k][1]+5*scale],[asteroids[k][0]+10*scale, asteroids[k][1]-10*scale],[asteroids[k][0], asteroids[k][1]-5*scale],[asteroids[k][0]-10*scale, asteroids[k][1]-10*scale],[asteroids[k][0]-3*scale, asteroids[k][1]+2*scale],[asteroids[k][0]-10*scale, asteroids[k][1]+10*scale]];
+    if (point_in_polygon(points, pt)){// Impact
       if (confirm('You Lost :( !! Wanna play Again?')) {
         location.reload();
       }
@@ -195,7 +207,13 @@ update();
 //Astroid creator
 setInterval(function(){
     asteroid();
-}, 2000);
+}, interval);
+
+setInterval(function(){
+  if ( interval > 1000){
+    interval = interval - 10;
+  }
+}, 10000);
 
 // Disable page scrolling
 window.addEventListener("keydown", function(e) {
