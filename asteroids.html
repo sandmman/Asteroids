@@ -4,23 +4,39 @@
   <link rel="stylesheet" type="text/css" href="style.css">
   <script src = "Utilities.js"></script>
 </head>
-<body>
-<h name = "Asteroids"> Asteroids</h>
-<table>
-  <tr>
-    <td width = "100">
-      <button type = "button" onclick = "restart()">Restart</button>
-    </td>
-  </tr>
-  <tr>
-    <td> Score: <a id="Score"></a></td>
-  </tr>
-</table>
 
-<canvas id = "segcanvas" width = "700" height = "500" style="border:1px solid #777777;">
+<body>
+  <h1 name = "Asteroids"> Asteroids</h1>
+<div id="main_wrap">
+  <div id="sidebar">
+    <table>
+      <tr>
+          <td> High Score: <a id="hScore"></a> <a id="hScoreName"></a></td>
+      </tr>
+      <tr>
+        <td> Score: <a id="Score"></a></td>
+      </tr>
+      <tr>
+        <td height = "50">
+          <button onclick = "restart()" class="myButton">Restart</button>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <div id="content">
+    <canvas id = "segcanvas" width = "700" height = "500" style="border:1px solid #777777;">
+  </div>
+</div>​
+
+
+
 
 <script>
 
+document.getElementById('hScore').innerHTML = "" + localStorage.getItem('HScore'); // Set that high score
+document.getElementById('hScoreName').innerHTML = "" + localStorage.getItem('HScoreName'); // Set that high score
+
+//Set up Canvas
 var canvas = document.getElementById("segcanvas"),
 ctx = canvas.getContext("2d");
 
@@ -34,7 +50,8 @@ var x = 250,  //initial x
     keys = [],
     shots = [],
     asteroids = [],
-    interval = 2000;
+    interval = 2000,
+    hScore = localStorage.getItem('HScore');
 
 // Purpose: Adjusts velocity vectors and ship position
 function update() {
@@ -62,7 +79,6 @@ function update() {
     if (keys[88]) { // gun shot
       keys[88] = false;
     }
-
     // apply some friction to y velocity.
     velY *= friction;
     y += velY;
@@ -70,7 +86,6 @@ function update() {
     // apply some friction to x velocity.
     velX *= friction;
     x += velX;
-
     // bounds checking
     if (x >= canvas.width - 5) {
         x = canvas.width - 5;
@@ -95,6 +110,10 @@ function update() {
 function asteroid() {
   var coordinates = getRandomCoordinates();
   var velocity = getRandomVelocity();
+  if (x+20 <= coordinates[0] && x-20 <= coordinates[0] && y+20 <= coordinates[1] && y-20 <= coordinates[1]){
+    coordinates[0]+=30;
+    coordinates[1]+=30;
+  }
   var size = Math.ceil(Math.random() * (3));
   velocity.push(size);
   asteroids.push(coordinates.concat(velocity));
@@ -107,8 +126,9 @@ function checkAsteroidCollision(shot,index){
     var sht = [shot[0],shot[1]];
     var pts = [[asteroids[j][0]+10*scale, asteroids[j][1]+10*scale],[asteroids[j][0]+8*scale, asteroids[j][1]+5*scale],[asteroids[j][0]+10*scale, asteroids[j][1]-10*scale],[asteroids[j][0], asteroids[j][1]-5*scale],[asteroids[j][0]-10*scale, asteroids[j][1]-10*scale],[asteroids[j][0]-3*scale, asteroids[j][1]+2*scale],[asteroids[j][0]-10*scale, asteroids[j][1]+10*scale]];
     // Tests if point is within the astroid polygon
-    if (point_in_polygon(pts, sht)) { // Impact
+    if (point_in_polygon(pts, sht)) {
         shots.splice(index,1);
+        // The Asteroid should be split in 2 and new velocity vectors be created
         if(scale > 1){
           var nVelocities = [getRandomVelocity(),getRandomVelocity()];
           asteroids[j][4]--;
@@ -133,7 +153,12 @@ function checkShipCollision(){
     var pt = [[x-4,y-4],[x,y+2],[x+4,y-4]];
     var points = [[asteroids[k][0]+10*scale, asteroids[k][1]+10*scale],[asteroids[k][0]+8*scale, asteroids[k][1]+5*scale],[asteroids[k][0]+10*scale, asteroids[k][1]-10*scale],[asteroids[k][0], asteroids[k][1]-5*scale],[asteroids[k][0]-10*scale, asteroids[k][1]-10*scale],[asteroids[k][0]-3*scale, asteroids[k][1]+2*scale],[asteroids[k][0]-10*scale, asteroids[k][1]+10*scale]];
     if (pts_in_polygon(points, pt)){// Impact
-      if (confirm('You Lost :( !! Wanna play Again?')) {
+      if (confirm('You Lost!!')) {
+        if(score > hScore || hScore == null){
+          var person = prompt("Please enter your name (Maximum limit 16)", "Harry Potter");
+          localStorage.setItem('HScore', score);
+          localStorage.setItem('HScoreName', person.slice(0,17));
+        }
         location.reload();
       }
     }

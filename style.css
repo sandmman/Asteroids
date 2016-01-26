@@ -9,10 +9,11 @@ canvas {
 body {
     background-color: black;
 }
-h {
-  font-family: Arial;
+h1 {
+  font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
   color: White;
   font-size: 40px;
+  font-weight:100;
   text-align: center;
 }
 table {
@@ -20,8 +21,41 @@ table {
 }
 
 table, th, td {
-    font-family: Arial;
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
     font-size: 20px;
-    align: left;
+    font-weight:100;
     color: White;
+}
+
+#main_wrap {}
+#sidebar{
+    width: 275px;
+    background-color: black;
+    float:left;
+}
+#content{}
+.myButton {
+	-moz-box-shadow:inset -50px -50px 0px -50px #000000;
+	-webkit-box-shadow:inset -50px -50px 0px -50px #000000;
+	box-shadow:inset -50px -50px 0px -50px #000000;
+	background-color:transparent;
+	-moz-border-radius:5px;
+	-webkit-border-radius:5px;
+	border-radius:5px;
+	border:1px solid #ffffff;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Helvetica Neue, Helvetica, Arial, sans-serif;
+  font-weight: 100;
+	font-size:15px;
+	padding:6px 24px;
+	text-shadow:-50px -50px 0px #000000;
+}
+.myButton:hover {
+	background-color:transparent;
+}
+.myButton:active {
+	position:relative;
+	top:1px;
 }

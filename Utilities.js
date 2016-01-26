@@ -114,7 +114,7 @@ function repaintAsteroids(){
       ctx.lineTo(asteroids[i][0]-3*scale, asteroids[i][1]+2*scale);
       ctx.lineTo(asteroids[i][0]-10*scale, asteroids[i][1]+10*scale);
       ctx.closePath();
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1;
       ctx.strokeStyle = 'White';
       ctx.stroke();
 
