@@ -104,13 +104,29 @@ function repaint() {
   repaintShots();
   repaintAsteroids();
 }
+/*function repaintShip(){
+  checkShipCollision();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.beginPath();
+
+  ctx.arc(x, y, 5, 0, Math.PI * 2);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+}*/
 function repaintShip(){
   checkShipCollision();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.beginPath();
-  ctx.arc(x, y, 5, 0, Math.PI * 2);
-  ctx.fillStyle = "#ffffff";
-  ctx.fill();
+  ctx.moveTo(x-4,y-4);
+  ctx.lineTo(x,y+2);
+  ctx.lineTo(x+4,y-4);
+  ctx.closePath();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'White';
+  ctx.stroke();
+  //ctx.arc(x, y, 5, 0, Math.PI * 2);
+  //ctx.fillStyle = "#ffffff";
+  //ctx.fill();
 }
 function repaintShots(){
   for (l=0;l<shots.length;l++){
@@ -170,9 +186,17 @@ function checkAsteroidCollision(shot,index){
     // Tests if point is within the astroid polygon
     if (point_in_polygon(pts, sht)) { // Impact
         shots.splice(index,1);
-        console.log(asteroids.length);
-        console.log(asteroids.splice(j,1));
-        console.log(asteroids.length);
+        if(scale > 1){
+          var nVelocities = [getRandomVelocity(),getRandomVelocity()];
+          asteroids[j][4]--;
+          asteroids[j][2] = nVelocities[0][0];
+          asteroids[j][3] = nVelocities[0][1];;
+          var ast = [asteroids[j][0],asteroids[j][1],nVelocities[1][0],nVelocities[1][1],asteroids[j][4]];
+          asteroids.push(ast);
+        }
+        else{
+          asteroids.splice(j,1);
+        }
         score++;
         document.getElementById('Score').innerHTML = "" + score;
     }
@@ -197,7 +221,9 @@ function getRandomCoordinates() {
   return [Math.floor(Math.random() * (canvas.height - 1)),Math.floor(Math.random() * (canvas.height - 1))];
 }
 function getRandomVelocity() {
-  return [Math.random(),Math.random()];
+  var plusOrMinusX = Math.random() < 0.5 ? -1 : 1;
+  var plusOrMinusY = Math.random() < 0.5 ? -1 : 1;
+  return [plusOrMinusX*Math.random(),plusOrMinusY*Math.random()];
 }
 function restart() {
   location.reload();
@@ -211,7 +237,7 @@ setInterval(function(){
 
 setInterval(function(){
   if ( interval > 1000){
-    interval = interval - 10;
+    interval = interval - 50;
   }
 }, 10000);
 
