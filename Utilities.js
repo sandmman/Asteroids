@@ -76,18 +76,35 @@ function repaintShots(){
     // adjust coordinates
     shots[l][1] += shots[l][3];
     shots[l][0] += shots[l][2];
-    //delete it if its out of the page
-    var Cx = shots[l][0];
-    var Cy = shots[l][1];
-    if(Cx > canvas.width || Cx < 0 || Cy > canvas.height || Cy < 0){
+    shots[l][4] += 1;
+    if(shots[l][4] > 500){
       shots.splice(l,1);
     }
     else {
-      ctx.beginPath();
-      ctx.arc(shots[l][0],shots[l][1], 2, 0, Math.PI * 2);
-      ctx.fillStyle = "#ffffff";
-      ctx.fill();
-      checkAsteroidCollision(shots[l],l);
+      //delete it if its out of the page
+      var Cx = shots[l][0];
+      var Cy = shots[l][1];
+      if(Cx > canvas.width ){
+        shots[l][0] = Cx % canvas.width;
+        shots[l][1] = Cy;
+      } else if ( Cx < 0 ){
+        shots[l][0] = Cx + canvas.width;
+        shots[l][1] = Cy;
+      }
+      if(Cy > canvas.height){
+        shots[l][0] = Cx;
+        shots[l][1] = Cy % canvas.height;
+      } else if (Cy < 0) {
+        shots[l][0] = Cx;
+        shots[l][1] = Cy + canvas.height;
+      }
+      else {
+        ctx.beginPath();
+        ctx.arc(shots[l][0],shots[l][1], 2, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+        checkAsteroidCollision(shots[l],l);
+      }
     }
   }
 }
@@ -100,8 +117,19 @@ function repaintAsteroids(){
     //delete it if its out of the page
     var Cx = asteroids[i][0];
     var Cy = asteroids[i][1];
-    if(Cx > canvas.width || Cx < 0 || Cy > canvas.height || Cy < 0){
-      asteroids.splice(i,1);
+    if(Cx > canvas.width ){
+      asteroids[i][0] = Cx % canvas.width;
+      asteroids[i][1] = Cy;
+    } else if ( Cx < 0 ){
+      asteroids[i][0] = Cx + canvas.width;
+      asteroids[i][1] = Cy;
+    }
+    if(Cy > canvas.height){
+      asteroids[i][0] = Cx;
+      asteroids[i][1] = Cy % canvas.height;
+    } else if (Cy < 0) {
+      asteroids[i][0] = Cx;
+      asteroids[i][1]= Cy + canvas.height;
     }
     else{
       var scale = asteroids[i][4];

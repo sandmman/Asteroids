@@ -39,13 +39,15 @@ document.getElementById('hScoreName').innerHTML = "" + localStorage.getItem('HSc
 //Set up Canvas
 var canvas = document.getElementById("segcanvas"),
 ctx = canvas.getContext("2d");
+var image = new Image();
+image.src = "./images/ship.png";
 
 var x = 250,  //initial x
     y = 250,  // initial y
     velY = 0,
     velX = 0,
     speed = 1, // max speed
-    friction = 0.98, // friction
+    friction = 0.93, // friction
     score = 0;
     keys = [],
     shots = [],
@@ -87,16 +89,16 @@ function update() {
     velX *= friction;
     x += velX;
     // bounds checking
-    if (x >= canvas.width - 5) {
-        x = canvas.width - 5;
-    } else if (x <= 5) {
-        x = 5;
+    if (x >= canvas.width) {
+        x = x % canvas.width;
+    } else if (x <= 0) {
+        x = x + canvas.width;
     }
 
-    if (y > canvas.height) {
-        y = canvas.height;
-    } else if (y <= 5) {
-        y = 5;
+    if (y >= canvas.height) {
+        y = y % canvas.height;
+    } else if (y <= 0) {
+        y = y + canvas.height;
     }
 
     // do the drawing
@@ -145,9 +147,24 @@ function checkAsteroidCollision(shot,index){
     }
   }
 }
-
+function checkShipCollisionBullets(){
+  for(p=0; p < shots.length;p++){
+    var pts = [[x-4,y-4],[x,y+2],[x+4,y-4]];
+    if (shots[p][4] > 10 && point_in_polygon(pts, shots[p])) {
+      if (confirm('You Shot Yourself!!')) {
+        if(score > hScore || hScore == null){
+          var person = prompt("Please enter your name (Maximum limit 16)", "Harry Potter");
+          localStorage.setItem('HScore', score);
+          localStorage.setItem('HScoreName', person.slice(0,17));
+        }
+        location.reload();
+      }
+    }
+  }
+}
 //Purpose: Check if an astroid collides with the ship
 function checkShipCollision(){
+  checkShipCollisionBullets();
   for (k=0; k < asteroids.length; k++){
     var scale = asteroids[k][4];
     var pt = [[x-4,y-4],[x,y+2],[x+4,y-4]];
@@ -177,10 +194,10 @@ setInterval(function(){
 
 // Adjusts interval; thus, affecting difficulty
 setInterval(function(){
-  if ( interval > 1000){
-    interval = interval - 50;
+  if ( interval > 100){
+    interval = interval - 100;
   }
-}, 10000);
+}, 7000);
 
 // Disable page scrolling
 window.addEventListener("keydown", function(e) {
@@ -211,7 +228,7 @@ document.body.addEventListener("keydown", function (e) {
       if (velY < 0){
         multY = -1;
       }
-      shots.push([x,y,vX*multX,vY*multY]);
+      shots.push([x,y+5,vX*multX,vY*multY,0]);
     }
 });
 document.body.addEventListener("keyup", function (e) {
