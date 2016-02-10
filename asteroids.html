@@ -150,7 +150,7 @@ function checkAsteroidCollision(shot,index){
 function checkShipCollisionBullets(){
   for(p=0; p < shots.length;p++){
     var pts = [[x-4,y-4],[x,y+2],[x+4,y-4]];
-    if (shots[p][4] > 10 && point_in_polygon(pts, shots[p])) {
+    if (shots[p][4] > 50 && point_in_polygon(pts, shots[p])) {
       if (confirm('You Shot Yourself!!')) {
         if(score > hScore || hScore == null){
           var person = prompt("Please enter your name (Maximum limit 16)", "Harry Potter");
