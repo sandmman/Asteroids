@@ -20,6 +20,7 @@ function point_in_polygon(points,pt){
   }
   return oddNodes;
 }
+
 //Purpose: Consolidates checking multiple points (space ship)
 function pts_in_polygon(points,pts){
     ret = false;
@@ -55,6 +56,7 @@ function getRandomVelocity() {
 function repaint() {
   repaintShip();
   repaintShots();
+  repaintAliens();
   repaintAsteroids();
 }
 // Purpose: Redraw Ship
@@ -81,7 +83,7 @@ function repaintShots(){
       shots.splice(l,1);
     }
     else {
-      //delete it if its out of the page
+      //wrap around page
       var Cx = shots[l][0];
       var Cy = shots[l][1];
       if(Cx > canvas.width ){
@@ -98,14 +100,58 @@ function repaintShots(){
         shots[l][0] = Cx;
         shots[l][1] = Cy + canvas.height;
       }
-      else {
-        ctx.beginPath();
-        ctx.arc(shots[l][0],shots[l][1], 2, 0, Math.PI * 2);
-        ctx.fillStyle = "#ffffff";
-        ctx.fill();
-        checkAsteroidCollision(shots[l],l);
+      ctx.beginPath();
+      ctx.arc(shots[l][0],shots[l][1], 2, 0, Math.PI * 2);
+      ctx.fillStyle = shots[l][5];
+      ctx.fill();
+      if(!checkAsteroidCollision(shots[l],l)){
+        checkAlienShipCollision(shots[l],l);
       }
     }
+  }
+}
+function repaintAliens(){
+  for (t=0;t<aliens.length;t++){
+    // adjust coordinates
+    aliens[t][1] += aliens[t][3];
+    aliens[t][0] += aliens[t][2];
+    var Cx = aliens[t][0];
+    var Cy = aliens[t][1];
+    if(Cx > canvas.width ){
+      aliens[t][0] = Cx % canvas.width;
+      aliens[t][1] = Cy;
+    } else if ( Cx < 0 ){
+      aliens[t][0] = Cx + canvas.width;
+      aliens[t][1] = Cy;
+    }
+    if(Cy > canvas.height){
+      aliens[t][0] = Cx;
+      aliens[t][1] = Cy % canvas.height;
+    } else if (Cy < 0) {
+      aliens[t][0] = Cx;
+      aliens[t][1]= Cy + canvas.height;
+    }
+    ctx.beginPath();
+    ctx.moveTo(aliens[t][0]-10, aliens[t][1]);
+    ctx.lineTo(aliens[t][0]-5, aliens[t][1]+5);
+    ctx.lineTo(aliens[t][0]+5, aliens[t][1]+5);
+    ctx.lineTo(aliens[t][0]+10, aliens[t][1]);
+    ctx.lineTo(aliens[t][0]+5, aliens[t][1]-5);
+
+    ctx.lineTo(aliens[t][0]-5, aliens[t][1]-5);
+    ctx.lineTo(aliens[t][0]+5, aliens[t][1]-5);
+
+    ctx.lineTo(aliens[t][0]+4, aliens[t][1]-5);
+    ctx.lineTo(aliens[t][0]+2, aliens[t][1]-8);
+    ctx.lineTo(aliens[t][0]-2, aliens[t][1]-8);
+    ctx.lineTo(aliens[t][0]-4, aliens[t][1]-5);
+    ctx.lineTo(aliens[t][0]-5, aliens[t][1]-5);
+    ctx.lineTo(aliens[t][0]-10, aliens[t][1]);
+    ctx.lineTo(aliens[t][0]+10, aliens[t][1]);
+    ctx.closePath();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'Red';
+    ctx.stroke();
   }
 }
 // Purpose: Redraw Asteroids
@@ -114,7 +160,7 @@ function repaintAsteroids(){
     // adjust coordinates
     asteroids[i][1] += asteroids[i][3];
     asteroids[i][0] += asteroids[i][2];
-    //delete it if its out of the page
+    // Wrap around page
     var Cx = asteroids[i][0];
     var Cy = asteroids[i][1];
     if(Cx > canvas.width ){
@@ -131,21 +177,18 @@ function repaintAsteroids(){
       asteroids[i][0] = Cx;
       asteroids[i][1]= Cy + canvas.height;
     }
-    else{
-      var scale = asteroids[i][4];
-      ctx.beginPath();
-      ctx.moveTo(asteroids[i][0]+10*scale, asteroids[i][1]+10*scale);
-      ctx.lineTo(asteroids[i][0]+8*scale, asteroids[i][1]+5*scale);
-      ctx.lineTo(asteroids[i][0]+10*scale, asteroids[i][1]-10*scale);
-      ctx.lineTo(asteroids[i][0], asteroids[i][1]-5*scale);
-      ctx.lineTo(asteroids[i][0]-10*scale, asteroids[i][1]-10*scale);
-      ctx.lineTo(asteroids[i][0]-3*scale, asteroids[i][1]+2*scale);
-      ctx.lineTo(asteroids[i][0]-10*scale, asteroids[i][1]+10*scale);
-      ctx.closePath();
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = 'White';
-      ctx.stroke();
-
-    }
+    var scale = asteroids[i][4];
+    ctx.beginPath();
+    ctx.moveTo(asteroids[i][0]+10*scale, asteroids[i][1]+10*scale);
+    ctx.lineTo(asteroids[i][0]+8*scale, asteroids[i][1]+5*scale);
+    ctx.lineTo(asteroids[i][0]+10*scale, asteroids[i][1]-10*scale);
+    ctx.lineTo(asteroids[i][0], asteroids[i][1]-5*scale);
+    ctx.lineTo(asteroids[i][0]-10*scale, asteroids[i][1]-10*scale);
+    ctx.lineTo(asteroids[i][0]-3*scale, asteroids[i][1]+2*scale);
+    ctx.lineTo(asteroids[i][0]-10*scale, asteroids[i][1]+10*scale);
+    ctx.closePath();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'White';
+    ctx.stroke();
   }
 }

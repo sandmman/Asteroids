@@ -52,6 +52,7 @@ var x = 250,  //initial x
     keys = [],
     shots = [],
     asteroids = [],
+    aliens = [],
     interval = 2000,
     hScore = localStorage.getItem('HScore');
 
@@ -112,17 +113,41 @@ function update() {
 function asteroid() {
   var coordinates = getRandomCoordinates();
   var velocity = getRandomVelocity();
-  if (x+20 <= coordinates[0] && x-20 <= coordinates[0] && y+20 <= coordinates[1] && y-20 <= coordinates[1]){
-    coordinates[0]+=30;
-    coordinates[1]+=30;
+  if (x+50 >= coordinates[0] && x-50 <= coordinates[0] && y+50 >= coordinates[1] && y-50 <= coordinates[1]){
+    coordinates[0]+=100;
+    coordinates[1]+=100;
   }
   var size = Math.ceil(Math.random() * (3));
   velocity.push(size);
   asteroids.push(coordinates.concat(velocity));
 }
+function alien(){
+    var coordinates = getRandomCoordinates();
+    var velocity = getRandomVelocity();
+    if (x+50 <= coordinates[0] && x-50 <= coordinates[0] && y+50 <= coordinates[1] && y-50 <= coordinates[1]){
+      coordinates[0]+=30;
+      coordinates[1]+=30;
+    }
+    aliens.push(coordinates.concat(velocity));
+}
 
-//Purpose: Check if a shot collides with an astroid
+//////////BULLET COLLISIONS//////////////
+//Check if a shots collides with an Alien Ship
+function checkAlienShipCollision(shot,l){
+  for (h=0; h < aliens.length; h++){
+    var sht = [shot[0],shot[1]];
+    var alien_pts = [[aliens[h][0]-10, aliens[h][1]],[aliens[h][0]-5, aliens[h][1]+5],[aliens[h][0]+5, aliens[h][1]+5],[aliens[h][0]+10, aliens[h][1]],[aliens[h][0]+5, aliens[h][1]-5],[aliens[h][0]+4, aliens[h][1]-5],[aliens[h][0]+2, aliens[h][1]-8],[aliens[h][0]-2, aliens[h][1]-8],[aliens[h][0]-4, aliens[h][1]-5],[aliens[h][0]-5, aliens[h][1]-5],[aliens[h][0]-10, aliens[h][1]],[aliens[h][0]+10, aliens[h][1]]];
+    if (shot[5] != "#FF0000" && point_in_polygon(alien_pts, sht)) {
+        shots.splice(l,1);
+        aliens.splice(h,1);
+        score++;
+        document.getElementById('Score').innerHTML = "" + score;
+    }
+  }
+}
+//Check if a shots collides with an asteroid
 function checkAsteroidCollision(shot,index){
+  checkShipCollisionBullets();
   for (j=0; j < asteroids.length; j++){
     var scale = asteroids[j][4];
     var sht = [shot[0],shot[1]];
@@ -144,9 +169,12 @@ function checkAsteroidCollision(shot,index){
         }
         score++;
         document.getElementById('Score').innerHTML = "" + score;
+        return true;
     }
   }
+  return false;
 }
+//Check if user ship collides with bullets
 function checkShipCollisionBullets(){
   for(p=0; p < shots.length;p++){
     var pts = [[x-4,y-4],[x,y+2],[x+4,y-4]];
@@ -162,9 +190,27 @@ function checkShipCollisionBullets(){
     }
   }
 }
-//Purpose: Check if an astroid collides with the ship
+//////////OBJECT COLLISIONS//////////////
+//Check if an alien ship collides with the user ship
+function checkAlienCollision(shot,index){
+  for (g=0; g < aliens.length; g++){
+    var pts = [[x-4,y-4],[x,y+2],[x+4,y-4]];
+    var alien_pts = [[aliens[g][0]-10, aliens[g][1]],[aliens[g][0]-5, aliens[g][1]+5],[aliens[g][0]+5, aliens[g][1]+5],[aliens[g][0]+10, aliens[g][1]],[aliens[g][0]+5, aliens[g][1]-5],[aliens[g][0]+4, aliens[g][1]-5],[aliens[g][0]+2, aliens[g][1]-8],[aliens[g][0]-2, aliens[g][1]-8],[aliens[g][0]-4, aliens[g][1]-5],[aliens[g][0]-5, aliens[g][1]-5],[aliens[g][0]-10, aliens[g][1]],[aliens[g][0]+10, aliens[g][1]]];
+    if (pts_in_polygon(alien_pts, pts)) {
+      if (confirm('An Alien Killed You!!')) {
+        if(score > hScore || hScore == null){
+          var person = prompt("Please enter your name (Maximum limit 16)", "Harry Potter");
+          localStorage.setItem('HScore', score);
+          localStorage.setItem('HScoreName', person.slice(0,17));
+        }
+        location.reload();
+      }
+    }
+  }
+}
+//Purpose: Check if an astroid collides with the user ship
 function checkShipCollision(){
-  checkShipCollisionBullets();
+  checkAlienCollision();
   for (k=0; k < asteroids.length; k++){
     var scale = asteroids[k][4];
     var pt = [[x-4,y-4],[x,y+2],[x+4,y-4]];
@@ -181,6 +227,36 @@ function checkShipCollision(){
     }
   }
 }
+function randomizeAliens(){
+  for(q=0; q < aliens.length; q++){
+    var vel = getRandomVelocity();
+    aliens[q][2] = vel[0];
+    aliens[q][3] = vel[1];
+  }
+}
+function aliensShoot(){
+  for(w=0; w < aliens.length; w++){
+    var shotVX = aliens[w][2];
+    var shotVY = aliens[w][3];
+    if(Math.abs(shotVX) > Math.abs(shotVY)){
+      var shotVX = 2;
+      var shotVY = Math.abs(shotVY/shotVX) * 2;
+    } else {
+      var shotVY = 2;
+      var shotVX = Math.abs(shotVX/shotVY) * 2;
+    }
+    var mult_X = 1;
+    var mult_Y = 1;
+    if (shotVX < 0){
+      mult_X = -1;
+    }
+    if (shotVY < 0){
+      mult_Y = -1;
+    }
+    shots.push([aliens[w][0],aliens[w][1],shotVX*mult_X,shotVY*mult_Y,0,"#FF0000"]);
+    shots.push([aliens[w][0],aliens[w][1],shotVX*mult_X,shotVY*mult_Y,0,"#FF0000"]);
+  }
+}
 // Restart game function
 function restart() {
   location.reload();
@@ -190,8 +266,13 @@ update();
 // Creates Asteroid every on each interval
 setInterval(function(){
     asteroid();
+    randomizeAliens();
+    aliensShoot();
 }, interval);
 
+setInterval(function(){
+    alien();
+}, 10000);
 // Adjusts interval; thus, affecting difficulty
 setInterval(function(){
   if ( interval > 100){
@@ -228,7 +309,7 @@ document.body.addEventListener("keydown", function (e) {
       if (velY < 0){
         multY = -1;
       }
-      shots.push([x,y+5,vX*multX,vY*multY,0]);
+      shots.push([x,y+5,vX*multX,vY*multY,0,"#FFFFFF"]);
     }
 });
 document.body.addEventListener("keyup", function (e) {
