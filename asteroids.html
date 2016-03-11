@@ -168,7 +168,7 @@ function checkAsteroidCollision(shot,index){
           asteroids.splice(j,1);
         }
         score++;
-        document.getElementById('Score').innerHTML = "" + score;
+        if(shot[5] != "#FF0000"){document.getElementById('Score').innerHTML = "" + score;}
         return true;
     }
   }
@@ -236,25 +236,25 @@ function randomizeAliens(){
 }
 function aliensShoot(){
   for(w=0; w < aliens.length; w++){
-    var shotVX = aliens[w][2];
-    var shotVY = aliens[w][3];
-    if(Math.abs(shotVX) > Math.abs(shotVY)){
-      var shotVX = 2;
-      var shotVY = Math.abs(shotVY/shotVX) * 2;
-    } else {
-      var shotVY = 2;
-      var shotVX = Math.abs(shotVX/shotVY) * 2;
+    if(Math.random() < 0.5){
+      var b = 2; // Max speed
+      var a = 1; // Min speed
+      var shotVX = (b-a)*((x - aliens[w][0])/ canvas.width);
+      var shotVY = (b-a)*((y - aliens[w][1])/ canvas.height);
+      if(shotVX < 0){
+        shotVX -= a;
+      } else{
+        shotVX += a;
+      }
+      if(shotVY < 0){
+        shotVY -= a;
+      }
+      else{
+        shotVY += a;
+      }
+      shots.push([aliens[w][0],aliens[w][1],shotVX,shotVY,0,"#FF0000"]);
     }
-    var mult_X = 1;
-    var mult_Y = 1;
-    if (shotVX < 0){
-      mult_X = -1;
-    }
-    if (shotVY < 0){
-      mult_Y = -1;
-    }
-    shots.push([aliens[w][0],aliens[w][1],shotVX*mult_X,shotVY*mult_Y,0,"#FF0000"]);
-    shots.push([aliens[w][0],aliens[w][1],shotVX*mult_X,shotVY*mult_Y,0,"#FF0000"]);
+    //shots.push([aliens[w][0],aliens[w][1],shotVX*mult_X,shotVY*mult_Y,0,"#FF0000"]);
   }
 }
 // Restart game function

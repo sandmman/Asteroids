@@ -31,7 +31,15 @@ function pts_in_polygon(points,pts){
     }
     return ret;
 }
-
+//Purpose: rotates a two dimensional point by theta
+function rotate(theta,pts){
+    var t_pts = []
+    for(var i = 0;i < pts.length; i++){
+        pt = pts[i];
+        t_pts.push([Math.cos(theta) * pt[0] - Math.sin(theta), Math.sin(theta) + Math.cos(theta)])
+    }
+    return t_pts
+}
 //////////////////////////////////////////////
 ///********    Random Functions   *******///
 //////////////////////////////////////////////
