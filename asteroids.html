@@ -29,9 +29,6 @@
   </div>
 </div>​
 
-
-
-
 <script>
 
 document.getElementById('hScore').innerHTML = "" + localStorage.getItem('HScore'); // Set that high score
@@ -43,22 +40,22 @@ ctx = canvas.getContext("2d");
 var image = new Image();
 image.src = "./images/shapeship.png";
 
-var ship = new Sprite(250,250,[[0,6],[4,-4],[-4,-4]]),
-    speed = 1,       // max speed
-    friction = 0.93, // friction
-    score = 0;
-    keys = [],
-    shots = [],
-    lastShot = Date.now();
-    aliens = [],
-    asteroids = [],
+var ship        = new Sprite(250,250,[[0,6],[4,-4],[-4,-4]]),
+    speed       = 2,       // max speed
+    friction    = 0.93, // friction
+    score       = 0;
+    keys        = [],
+    shots       = [],
+    lastShot    = Date.now();
+    aliens      = [],
+    asteroids   = [],
 
-    paused = false;
-    interval = 2000,
+    paused      = false;
+    interval    = 2000,
+    asteroidTransforms = [[10,10],[8,5],[10,-10],[0,-5],[-10,-10],[-3,2],[-10,10]],
+    alienTransforms    = [[-10, 0],[-5,5],[5,5],[10,0],[5,-5],[-5,-5],[5,-5],[4,-5],[2,-8],[-2,-8],[-4,-5],[-5,-5],[-10,0],[10,0]],
     hScore = localStorage.getItem('HScore');
-asteroid();
-asteroid();
-alien()
+
 // Purpose: Adjusts velocity vectors and ship position
 function update() {
     // check the keys and do the movement.
@@ -76,184 +73,143 @@ function update() {
     }
     //Left Rotational Movement
     if (keys[39] || keys[68]) {
-        ship.theta += 0.4;
+        ship.rVel += 0.4;
     }
     //Right Rotational Movement
     if (keys[37] || keys[65]) {
-        ship.theta -= 0.4;
+        ship.rVel -= 0.4;
     }
     if (keys[76] || keys[88]) { // gun shot
       keys[76] = false;
       keys[88] = false;
     }
     // Apply some friction to forward velocity and rotational velocity
-    ship.vel *= friction;
-    ship.theta *= friction;
+    ship.vel  *= 0.98;
+    ship.rVel *= 0.975;
 
     ship.update();
-    ship.boundsCheck();
     repaint();
 
     setTimeout(update, 10);
 
 }
 
-//Purpose: Creates a new asteroid with a random velocity
-function asteroid() {
-  var coors = getRandomCoordinates();
-  var velocity = getRandomVelocity();
-
-  if (ship.x+50 >= coors[0] && ship.x-50 <= coors[0] && ship.y+50 >= coors[1] && ship.y-50 <= coors[1]){
-    coors[0]+=100;
-    coors[1]+=100;
-  }
-
-  var size = Math.ceil(Math.random() * (3));
-  var transforms = [[10,10],[8,5],[10,-10],[0,-5],[-10,-10],[-3,2],[-10,10]];
-  var asteroid = new Sprite(coors[0],coors[1],transforms);
-  asteroid.dir = velocity;
-  asteroid.vel = 1;
-  asteroid.scale = 1;
-  asteroids.push(asteroid);
-
+/////// Object Creation //////
+function createAsteroid() {
+    asteroid = object(asteroidTransforms, 1);
+    asteroids.push(asteroid);
 }
-//Purpose: Creates a new alien with a random velocity
-function alien(){
-    var transform = [[-10, 0],[-5,5],[10,0],[5,-5],[-5,-5],[5,-5],[4,-5],[2,-8],[-2,-8],[-4,-5],[-5,-5],[-10,0],[10,0]];
-
-    var coor = getRandomCoordinates();
-    var velocity = getRandomVelocity();
-    if (ship.x+50 <= coor[0] && ship.x-50 <= coor[0] && ship.y+50 <= coor[1] && ship.y-50 <= coor[1]){
-      coor[0]+=30;
-      coor[1]+=30;
-    }
-    var alien = new Sprite(coor[0],coor[1],transform);
-    asteroid.dir = velocity;
-    asteroid.vel = 1;
-    asteroid.scale = 1;
+function createAlien() {
+    alien = object(alienTransforms, 1);
     aliens.push(alien);
 }
-
 //////////BULLET COLLISIONS//////////////
 //Check if a shots collides with an Alien Ship
 function checkAlienShipCollision(shot,l){
-  for (var h=0; h < aliens.length; h++){
-    var sht = [shot[0],shot[1]];
-    if (shot[5] != "#FF0000" && point_in_polygon(aliens[h].coor, sht)) {
-        shots.splice(l,1);
-        aliens.splice(h,1);
-        score++;
-        document.getElementById('Score').innerHTML = "" + score;
+    for (var h=0; h < aliens.length; h++){
+        var sht = [shot[0],shot[1]];
+        if (shot[5] != "#FF0000" && point_in_polygon(aliens[h].getVerticesPos(), sht)) {
+            shots.splice(l,1);
+            aliens.splice(h,1);
+            score++;
+            document.getElementById('Score').innerHTML = "" + score;
+        }
     }
-  }
 }
 //Check if a shots collides with an asteroid
 function checkAsteroidCollision(shot,index){
-  checkShipCollisionBullets();
-  for (var j=0; j < asteroids.length; j++){
-    var aster = asteroids[j];
-    var sht = [shot[0],shot[1]];
-    if (point_in_polygon(aster.coor, sht)) {
-        shots.splice(index,1);
-        // The Asteroid should be split in 2 and new velocity vectors be created
-        if(aster.scale > 1){
-          aster.scale--;
-          var nVelocity = getRandomVelocity();
-          var transforms = [[10,10],[8,5],[10,-10],[0,-5],[-10,-10],[-3,2],[-10,10]];
-          var nAster = new Sprite(aster.x,aster.y,transforms);
-          nAster.dir = nVelocity;
-          nAster.vel = nVelocity[0];
-          nAster.scale = aster.scale;
-          asteroids.push(nAster);
+    for (var j=0; j < asteroids.length; j++){
+        var aster = asteroids[j];
+        var sht = [shot[0],shot[1]];
+        if (point_in_polygon(aster.getVerticesPos(), sht)) {
+            shots.splice(index,1);
+            // The Asteroid should be split in 2 and new velocity vectors be created
+            if(aster.scale > 1){
+                aster.scale--;
+                var nVelocity = getRandomVelocity();
+                var nAster = new Sprite(aster.x,aster.y,asteroidTransforms);
+                nAster.dir = nVelocity;
+                nAster.vel = nVelocity[0];
+                nAster.scale = aster.scale;
+                asteroids.push(nAster);
+            }
+            else{
+                asteroids.splice(j,1);
+            }
+            score++;
+            if(shot[5] != "#FF0000"){document.getElementById('Score').innerHTML = "" + score;}
+            return true;
         }
-        else{
-          asteroids.splice(j,1);
-        }
-        score++;
-        if(shot[5] != "#FF0000"){document.getElementById('Score').innerHTML = "" + score;}
-        return true;
     }
-  }
   return false;
 }
+
 //Check if user ship collides with bullets
 function checkShipCollisionBullets(){
-  for(var p=0; p < shots.length;p++){
-    if (shots[p][4] > 50 && point_in_polygon(ship.coor, shots[p])) {
-      if (confirm('You Shot Yourself!!')) {
-        if(score > hScore || hScore == null){
-          var person = prompt("Please enter your name (Maximum limit 16)", "Harry Potter");
-          localStorage.setItem('HScore', score);
-          localStorage.setItem('HScoreName', person.slice(0,17));
+    for(var p=0; p < shots.length;p++){
+        if (shots[p][4] > 50) {
+            checkPoints(ship.getVerticesPos(), shots[p]);
         }
-        location.reload();
-      }
     }
-  }
 }
 //////////OBJECT COLLISIONS//////////////
-//Check if an alien ship collides with the user ship
-function checkAlienCollision(shot,index){
-  for (var g=0; g < aliens.length; g++){
-    var alien_pts = [[aliens[g][0]-10, aliens[g][1]],[aliens[g][0]-5, aliens[g][1]+5],[aliens[g][0]+5, aliens[g][1]+5],[aliens[g][0]+10, aliens[g][1]],[aliens[g][0]+5, aliens[g][1]-5],[aliens[g][0]+4, aliens[g][1]-5],[aliens[g][0]+2, aliens[g][1]-8],[aliens[g][0]-2, aliens[g][1]-8],[aliens[g][0]-4, aliens[g][1]-5],[aliens[g][0]-5, aliens[g][1]-5],[aliens[g][0]-10, aliens[g][1]],[aliens[g][0]+10, aliens[g][1]]];
-    if (pts_in_polygon(aliens[g].coor, ship.coor)) {
-      if (confirm('An Alien Killed You!!')) {
-        if(score > hScore || hScore == null){
-          var person = prompt("Please enter your name (Maximum limit 16)", "Harry Potter");
-          localStorage.setItem('HScore', score);
-          localStorage.setItem('HScoreName', person.slice(0,17));
-        }
-        location.reload();
-      }
-    }
-  }
-}
-//Purpose: Check if an astroid collides with the user ship
+//Purpose: Check if an astroid or alien collides with the user ship
 function checkShipCollision(){
-  checkAlienCollision();
   for (var k=0; k < asteroids.length; k++){
-    var aster = asteroids[k];
-    var scale = aster.scale;
-    if (pts_in_polygon(aster.coor, ship.coor)){// Impact
-      if (confirm('You Lost!!')) {
-        if(score > hScore || hScore == null){
-          var person = prompt("Please enter your name (Maximum limit 16)", "Harry Potter");
-          localStorage.setItem('HScore', score);
-          localStorage.setItem('HScoreName', person.slice(0,17));
-        }
-        location.reload();
-      }
-    }
+      var aster = asteroids[k];
+      var scale = aster.scale;
+      checkPoints(aster.getVerticesPos(), ship.getVerticesPos());
+  }
+  for (var g=0; g < aliens.length; g++){
+      checkPoints(aliens[g].getVerticesPos(), ship.getVerticesPos());
   }
 }
 function randomizeAliens(){
-  for(var q=0; q < aliens.length; q++){
-    var vel = getRandomVelocity();
-    aliens[q][2] = vel[0];
-    aliens[q][3] = vel[1];
-  }
+    for(var q=0; q < aliens.length; q++){
+        var vel = getRandomVelocity();
+        aliens[q][2] = vel[0];
+        aliens[q][3] = vel[1];
+    }
 }
 function aliensShoot(){
-  for(var w=0; w < aliens.length; w++){
-    if(Math.random() < 0.5){
-      var b = 2; // Max speed
-      var a = 1; // Min speed
-      var shotVX = (b-a)*((ship.x - aliens[w][0])/ canvas.width);
-      var shotVY = (b-a)*((ship.y - aliens[w][1])/ canvas.height);
-      if(shotVX < 0){
-        shotVX -= a;
-      } else{
-        shotVX += a;
-      }
-      if(shotVY < 0){
-        shotVY -= a;
-      }
-      else{
-        shotVY += a;
-      }
-      shots.push([aliens[w][0],aliens[w][1],shotVX,shotVY,0,"#FF0000"]);
+    for(var w=0; w < aliens.length; w++){
+        if(Math.random() < 0.5){
+            var b = 2; // Max speed
+            var a = 1; // Min speed
+            var shotVX = (b-a)*((ship.x - aliens[w].x)/ canvas.width);
+            var shotVY = (b-a)*((ship.y - aliens[w].y)/ canvas.height);
+            if(shotVX < 0){
+                shotVX -= a;
+            } else{
+                shotVX += a;
+            }
+            if(shotVY < 0){
+                shotVY -= a;
+            }
+            else{
+                shotVY += a;
+            }
+            shots.push([aliens[w].x,aliens[w].y,shotVX,shotVY,0,"#FF0000"]);
+        }
     }
-  }
+}
+function checkPoints(vertices1,vertices2){
+    if (pts_in_polygon(vertices1, vertices2)){// Impact
+        gameOver('You Lost');
+    }
+}
+function gameOver(message){
+    if (confirm(message)) {
+      updateHighScore();
+      location.reload();
+    }
+}
+function updateHighScore(){
+    if(score > hScore || hScore == null){
+      var person = prompt("Please enter your name (Maximum limit 16)", "Harry Potter");
+      localStorage.setItem('HScore', score);
+      localStorage.setItem('HScoreName', person.slice(0,17));
+    }
 }
 // Restart game function
 function restart() {
@@ -264,23 +220,24 @@ function pause() {
     else{paused = true;}
     while(!paused){}
 }
+
 update();
 
 // Creates Asteroid every on each interval
 setInterval(function(){
-    asteroid();
-    //randomizeAliens();
-    //aliensShoot();
+    createAsteroid();
+    randomizeAliens();
+    aliensShoot();
 }, interval);
 
 setInterval(function(){
-    //alien();
+    createAlien();
 }, 10000);
 // Adjusts interval; thus, affecting difficulty
 setInterval(function(){
-  if ( interval > 100){
-    interval = interval - 100;
-  }
+    if ( interval > 100){
+        interval = interval - 100;
+    }
 }, 7000);
 
 // Disable page scrolling
@@ -298,7 +255,7 @@ document.body.addEventListener("keydown", function (e) {
     if (e.keyCode == 88 || e.keyCode == 76){
         // Monitor Shot Rate
         if(Date.now() - lastShot > 250){
-              shots.push([ship.coor[0][0],ship.coor[0][1],ship.dir[0]*2,ship.dir[1]*2,0,"#FFFFFF"]);
+              shots.push([ship.getVerticesPos()[0][0],ship.getVerticesPos()[0][1],ship.dir[0]*2,ship.dir[1]*2,0,"#FFFFFF"]);
               lastShot = Date.now()
         }
     }
